@@ -100,7 +100,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
     ax2 = ax.twinx()
     ax.set_zorder(ax2.get_zorder() + 1)
     ax.patch.set_visible(False)
-    daylight_derivative = np.gradient(daylight_hours, edge_order=2) * 60
+    daylight_derivative = np.gradient(daylight_hours, edge_order=1) * 60
     ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label=f'Скорость изменения')
     y_diff = np.max([np.abs(np.max(daylight_derivative)), np.abs(np.min(daylight_derivative))])
     y_min, y_max = -y_diff, y_diff
@@ -132,7 +132,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
         # Даты солнцестояний и равноденствий (приблизительно)
         events = {
             'Весеннее равноденствие': datetime(year, 3, 20),
-            'Летнее солнцестояние': datetime(year, 6, 21),
+            'Летнее солнцестояние': datetime(year, 6, 24),
             'Осеннее равноденствие': datetime(year, 9, 22),
             'Зимнее солнцестояние': datetime(year, 12, 21),
             'Сегодня': datetime(year, datetime.now().month, datetime.now().day)
@@ -147,7 +147,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 
             # Добавляем вертикальную линию и текст
             if event_name == 'Сегодня':
-                event_name = 'Сегодня\n' + datetime.strftime(datetime.now(), '%d.%m.%Y')
+                event_name = 'Сегодня\n' + datetime.strftime(event_date, '%d.%m.%Y')
                 color = 'red'
                 dot_color = 'ro'
                 line_style = '-'
@@ -158,9 +158,9 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
                 line_style = '--'
                 y_cor = 1
 
-            ax.axvline(event_date, color=color, linestyle=line_style, alpha=0.5)
-            ax.plot(event_date, hours, dot_color, markersize=8)
-            ax.text(event_date, y_cor, f'{event_name}\n{hours_str}',
+            ax.axvline(event_date, color=color, linestyle=line_style, alpha=0.5) # noqa
+            ax.plot(event_date, hours, dot_color, markersize=8) # noqa
+            ax.text(event_date, y_cor, f'{event_name}\n{hours_str}', # noqa
                     ha='center', fontsize=9, bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
     # Добавляем статистику в легенду
@@ -178,7 +178,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 
 # Пример использования:
 if __name__ == "__main__":
-    fig, ax = plot_daylight_duration(latitude=55.66459, year=2026)
+    fig, ax = plot_daylight_duration(latitude=55.66459)
 
     filename = f"daylight_duration.png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
