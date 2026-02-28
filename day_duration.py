@@ -6,6 +6,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
+def float_hours_to_hm(hours_float: float | np.float32) -> str:
+    td = timedelta(hours=hours_float)
+    total_seconds = int(td.total_seconds())
+    hours = total_seconds // 3600
+    minutes = (total_seconds % 3600) // 60
+    return f"{hours:02d}:{minutes:02d}"
+
+
 def calculate_daylight_hours(day_of_year: int, latitude: float) -> float:
     # Склонение по формуле Купера
     declination = 23.45 * np.sin(np.radians(360 * (284 + day_of_year) / 365))
@@ -112,7 +120,9 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
         for event_name, event_date in events.items():
             # Находим ближайший день в массиве
             idx = min(range(len(dates_ticks)), key=lambda i: abs((dates_ticks[i] - event_date).days))
-            hours = daylight_hours[idx]
+            hours = float(daylight_hours[idx])
+            # hours_str = f'{int(hours)}:{int((hours - int(hours)) * 60)}'
+            hours_str = float_hours_to_hm(hours)
 
             # Добавляем вертикальную линию и текст
             if event_name == 'Сегодня':
@@ -129,14 +139,14 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 
             ax.axvline(x=event_date, color=color, linestyle=line_style, alpha=0.5)
             ax.plot(event_date, hours, dot_color, markersize=8)
-            ax.text(event_date, y_cor, f'{event_name}\n{hours:.1f} ч',
+            ax.text(event_date, y_cor, f'{event_name}\n{hours_str}',
                     ha='center', fontsize=9, bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
     # Добавляем статистику в легенду
     stats_text = (f'Широта: {latitude}°\n'
-                  f'Min: {np.min(daylight_hours):.1f} ч\n'
-                  f'Avg: {np.mean(daylight_hours):.1f} ч\n'
-                  f'Max: {np.max(daylight_hours):.1f} ч')
+                  f'Min: {float_hours_to_hm(np.min(daylight_hours))}\n'
+                  f'Avg: {float_hours_to_hm(np.mean(daylight_hours))}\n'
+                  f'Max: {float_hours_to_hm(np.max(daylight_hours))}')
     ax.text(0.99, 0.98, stats_text, transform=ax.transAxes, fontsize=10,
             horizontalalignment='right', verticalalignment='top', bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
