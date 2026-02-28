@@ -14,9 +14,25 @@ def float_hours_to_hm(hours_float: float | np.float32) -> str:
     return f"{hours:02d}:{minutes:02d}"
 
 
+def get_declination_spencer(day_of_year: int) -> float:
+    """Формула Спенсера"""
+    beta = np.radians(360 * (day_of_year - 1) / 365)
+    return (180 / np.pi) * (
+            0.006918
+            - 0.399912 * np.cos(beta) + 0.070257 * np.sin(beta)
+            - 0.006758 * np.cos(2 * beta) + 0.00907 * np.sin(2 * beta)
+            - 0.002697 * np.cos(3 * beta) + 0.00148 * np.sin(3 * beta)
+    )
+
+
+def get_declination_kuper(day_of_year: int) -> float:
+    """Формула Купера"""
+    return 23.45 * np.sin(np.radians(360 * (284 + day_of_year) / 365))
+
+
 def calculate_daylight_hours(day_of_year: int, latitude: float) -> float:
-    # Склонение по формуле Купера
-    declination = 23.45 * np.sin(np.radians(360 * (284 + day_of_year) / 365))
+    # Расчёт склонения
+    declination = get_declination_spencer(day_of_year)
 
     # Преобразуем в радианы
     lat_rad = np.radians(latitude)
@@ -26,16 +42,21 @@ def calculate_daylight_hours(day_of_year: int, latitude: float) -> float:
     # Для практических расчетов часто используют -0.8333°
     refraction_correction = np.radians(0.8333)
 
+    # Защита от нулей
+    test_cos = np.cos(lat_rad) * np.cos(dec_rad)
+    if abs(test_cos) < 1e-10:
+        return 24.0 if np.sin(lat_rad) * np.sin(dec_rad) > 0 else 0.0
+
     # Вычисляем часовой угол с учетом рефракции
     cos_h = -np.tan(lat_rad) * np.tan(dec_rad) - np.sin(refraction_correction) / (np.cos(lat_rad) * np.cos(dec_rad))
-
-    # Ограничиваем значение
-    cos_h = np.clip(cos_h, -1.0, 1.0)
 
     if cos_h >= 1:
         return 0.0  # Полярная ночь
     if cos_h <= -1:
         return 24.0  # Полярный день
+
+    # Ограничиваем значение
+    cos_h = np.clip(cos_h, -1.0, 1.0)
 
     # Продолжительность дня в часах
     h = np.degrees(np.arccos(cos_h))
@@ -137,7 +158,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
                 line_style = '--'
                 y_cor = 1
 
-            ax.axvline(x=event_date, color=color, linestyle=line_style, alpha=0.5)
+            ax.axvline(event_date, color=color, linestyle=line_style, alpha=0.5)
             ax.plot(event_date, hours, dot_color, markersize=8)
             ax.text(event_date, y_cor, f'{event_name}\n{hours_str}',
                     ha='center', fontsize=9, bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
