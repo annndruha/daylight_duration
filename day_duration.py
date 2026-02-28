@@ -1,5 +1,5 @@
 import calendar
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
@@ -65,7 +65,7 @@ def calculate_daylight_hours(day_of_year: int, latitude: float) -> float:
     return daylight
 
 
-def plot_daylight_duration(latitude, year=None, show_solstices=True):
+def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None):
     """
     Строит график продолжительности светового дня в течение года.
 
@@ -80,7 +80,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 
     # Устанавливаем год
     if year is None:
-        year = datetime.now().year
+        year = datetime.now(tz=tz).year
 
     # Проверяем високосный ли год
     days_in_year = 366 if calendar.isleap(year) else 365
@@ -135,7 +135,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
             'Летнее солнцестояние': datetime(year, 6, 24),
             'Осеннее равноденствие': datetime(year, 9, 22),
             'Зимнее солнцестояние': datetime(year, 12, 21),
-            'Сегодня': datetime(year, datetime.now().month, datetime.now().day)
+            'Сегодня': datetime(year, datetime.now(tz=tz).month, datetime.now(tz=tz).day)
         }
 
         for event_name, event_date in events.items():
@@ -178,7 +178,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 
 # Пример использования:
 if __name__ == "__main__":
-    fig, ax = plot_daylight_duration(latitude=55.66459)
+    fig, ax = plot_daylight_duration(latitude=55.66459, tz=timezone(timedelta(hours=3)))
 
     filename = "daylight_duration.png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
