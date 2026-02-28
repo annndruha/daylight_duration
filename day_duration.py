@@ -65,7 +65,7 @@ def calculate_daylight_hours(day_of_year: int, latitude: float) -> float:
     return daylight
 
 
-def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None):
+def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, city_name=''):
     """
     Строит график продолжительности светового дня в течение года.
 
@@ -164,7 +164,8 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None):
                     ha='center', fontsize=9, bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
     # Добавляем статистику в легенду
-    stats_text = (f'Широта: {latitude}°\n'
+    stats_text = (f'{city_name}'
+                  f'Широта: {latitude}°\n'
                   f'Min: {float_hours_to_hm(np.min(daylight_hours))}\n'
                   f'Avg: {float_hours_to_hm(np.mean(daylight_hours))}\n'
                   f'Max: {float_hours_to_hm(np.max(daylight_hours))}')
@@ -178,7 +179,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None):
 
 # Пример использования:
 if __name__ == "__main__":
-    fig, ax = plot_daylight_duration(latitude=55.66459, tz=timezone(timedelta(hours=3)))
+    fig, ax = plot_daylight_duration(city_name='Москва\n', latitude=55.66459, tz=timezone(timedelta(hours=3)))
 
     filename = "daylight_duration.png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
