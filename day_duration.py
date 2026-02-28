@@ -93,7 +93,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
     dates_ticks = [datetime(year, 1, 1) + timedelta(days=int(day - 1)) for day in days]
 
     # Рисуем основной график
-    ax.plot(dates_ticks, daylight_hours, 'b-', linewidth=2, label=f'Длина дня')
+    ax.plot(dates_ticks, daylight_hours, 'b-', linewidth=2, label='Длина дня')
     ax.fill_between(dates_ticks, 0, daylight_hours, alpha=0.3, color='skyblue')
 
     # Скорость изменения длины дня
@@ -101,7 +101,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
     ax.set_zorder(ax2.get_zorder() + 1)
     ax.patch.set_visible(False)
     daylight_derivative = np.gradient(daylight_hours, edge_order=1) * 60
-    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label=f'Скорость изменения')
+    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label='Скорость изменения')
     y_diff = np.max([np.abs(np.max(daylight_derivative)), np.abs(np.min(daylight_derivative))])
     y_min, y_max = -y_diff, y_diff
     ax2.set_ylim(y_min, y_max)
@@ -112,7 +112,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 
     # Настройки графика
     ax.set_ylabel('Продолжительность дня (часы)', fontsize=12)
-    ax.set_title(f'Продолжительность светового дня в течение года', fontsize=14, fontweight='bold')
+    ax.set_title('Продолжительность светового дня в течение года', fontsize=14, fontweight='bold')
 
     # Настройка оси X (даты)
     ax.xaxis.set_major_locator(mdates.MonthLocator())
@@ -180,6 +180,6 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
 if __name__ == "__main__":
     fig, ax = plot_daylight_duration(latitude=55.66459)
 
-    filename = f"daylight_duration.png"
+    filename = "daylight_duration.png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
     print(f"Plot saved as '{filename}'")
