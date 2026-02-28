@@ -1,7 +1,7 @@
+import calendar
 from datetime import datetime, timedelta
 
 import matplotlib.dates as mdates
-import calendar
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -101,7 +101,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True):
     ax.set_zorder(ax2.get_zorder() + 1)
     ax.patch.set_visible(False)
     daylight_derivative = np.gradient(daylight_hours, edge_order=2) * 60
-    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label=f'Скорость изменения gradient (не в масштабе)')
+    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label=f'Скорость изменения')
     y_diff = np.max([np.abs(np.max(daylight_derivative)), np.abs(np.min(daylight_derivative))])
     y_min, y_max = -y_diff, y_diff
     ax2.set_ylim(y_min, y_max)
