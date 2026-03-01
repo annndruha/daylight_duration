@@ -104,7 +104,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
     ax.set_zorder(ax2.get_zorder() + 1)
     ax.patch.set_visible(False)
     daylight_derivative = np.gradient(daylight_hours, edge_order=1) * 60
-    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label='Скорость изменения')
+    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label='Изменение')
     y_diff = np.max([np.abs(np.max(daylight_derivative)), np.abs(np.min(daylight_derivative))])
     y_min, y_max = -y_diff, y_diff
     ax2.set_ylim(y_min, y_max)
@@ -175,11 +175,9 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
     ax.text(0.99, 0.98, stats_text, transform=ax.transAxes, fontsize=10,
             horizontalalignment='right', verticalalignment='top', bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
-    ax.legend(loc='upper left', fontsize=10)
-    # lines, labels = ax.get_legend_handles_labels()
-    # lines2, labels2 = ax2.get_legend_handles_labels()
-    # ax2.legend(lines + lines2, labels + labels2, loc=0)
-    # ax.legend(lines + lines2, labels + labels2, loc='upper left', fontsize=10)
+    lines, labels = ax.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax.legend(lines + lines2, labels + labels2, loc='upper left', fontsize=10)
     plt.xlim(datetime(year, 1, 1), datetime(year, 12, 31))
     return fig, ax
 
