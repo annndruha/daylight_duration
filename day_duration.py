@@ -86,11 +86,14 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
     days_in_year = 366 if calendar.isleap(year) else 365
 
     # Создаем массивы данных
-    days = list(np.arange(1, days_in_year + 1))
+
+    freq = 30  # Points per day
+
+    days = list(np.arange(1, days_in_year + 1, 1 / freq))
     daylight_hours = np.array([calculate_daylight_hours(day, latitude) for day in days])
 
     # Создаем даты для оси X
-    dates_ticks = [datetime(year, 1, 1) + timedelta(days=int(day - 1)) for day in days]
+    dates_ticks = [datetime(year, 1, 1) + timedelta(seconds=int(86400 * day - 86400)) for day in days]
 
     # Рисуем основной график
     ax.plot(dates_ticks, daylight_hours, 'b-', linewidth=2, label='Длина дня')
@@ -125,7 +128,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
     ax.grid(True, alpha=0.5, linestyle='--')
 
     # Линия для 12 часов
-    ax.axhline(y=12, color='gray', linestyle=':', alpha=0.5, label='12 часов')
+    ax.axhline(y=12, color='gray', linestyle=':', alpha=0.9, label='12 часов')
 
     # Добавляем информацию о солнцестояниях и равноденствиях
     if show_solstices:
@@ -173,6 +176,10 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
             horizontalalignment='right', verticalalignment='top', bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
     ax.legend(loc='upper left', fontsize=10)
+    # lines, labels = ax.get_legend_handles_labels()
+    # lines2, labels2 = ax2.get_legend_handles_labels()
+    # ax2.legend(lines + lines2, labels + labels2, loc=0)
+    # ax.legend(lines + lines2, labels + labels2, loc='upper left', fontsize=10)
     plt.xlim(datetime(year, 1, 1), datetime(year, 12, 31))
     return fig, ax
 
