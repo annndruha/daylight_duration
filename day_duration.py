@@ -1,9 +1,13 @@
 import calendar
+import cv2
 from datetime import datetime, timedelta, timezone
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+TZ = timezone(timedelta(hours=3))
 
 
 def float_hours_to_hm(hours_float: float | np.float32) -> str:
@@ -65,7 +69,7 @@ def calculate_daylight_hours(day_of_year: int, latitude: float) -> float:
     return daylight
 
 
-def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, city_name=''):
+def plot_daylight_duration(latitude, year=None, show_solstices=True, plot_today=True, plot_derivative=False, city_name=''):
     """
     Строит график продолжительности светового дня в течение года.
 
@@ -80,7 +84,7 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
 
     # Устанавливаем год
     if year is None:
-        year = datetime.now(tz=tz).year
+        year = datetime.now(tz=TZ).year
 
     # Проверяем високосный ли год
     days_in_year = 366 if calendar.isleap(year) else 365
@@ -100,18 +104,20 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
     ax.fill_between(dates_ticks, 0, daylight_hours, alpha=0.3, color='skyblue')
 
     # Скорость изменения длины дня
-    ax2 = ax.twinx()
-    ax.set_zorder(ax2.get_zorder() + 1)
-    ax.patch.set_visible(False)
-    daylight_derivative = np.gradient(daylight_hours, edge_order=1) * 60
-    ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label='Изменение')
-    y_diff = np.max([np.abs(np.max(daylight_derivative)), np.abs(np.min(daylight_derivative))])
-    y_min, y_max = -y_diff, y_diff
-    ax2.set_ylim(y_min, y_max)
-    ax2.set_yticks(np.arange(y_min, y_max + 0.00000000001, y_diff / 5))
-    ax2.spines['right'].set_color('green')
-    ax2.set_ylabel('Изменение (минуты)', fontsize=12, color='green')
-    ax2.tick_params(axis='y', colors='green', right=False)
+    if plot_derivative:
+        ax2 = ax.twinx()
+        ax.set_zorder(ax2.get_zorder() + 1)
+        ax.patch.set_visible(False)
+        daylight_derivative = np.gradient(daylight_hours, edge_order=1) * 60
+        ax2.plot(dates_ticks, daylight_derivative, 'g-', linewidth=2, label='Изменение')
+        y_diff = np.max([np.abs(np.max(daylight_derivative)), np.abs(np.min(daylight_derivative))])
+        y_min, y_max = -y_diff, y_diff
+        ax2.set_ylim(y_min, y_max)
+        ax2.set_yticks(np.arange(y_min, y_max + 0.00000000001, y_diff / 5))
+        # ax2.set_yticks([])
+        ax2.spines['right'].set_color('green')
+        ax2.set_ylabel('Изменение (минуты)', fontsize=12, color='green')
+        ax2.tick_params(axis='y', colors='green', right=False)
 
     # Настройки графика
     ax.set_ylabel('Продолжительность дня (часы)', fontsize=12)
@@ -137,9 +143,10 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
             'Весеннее равноденствие': datetime(year, 3, 20),
             'Летнее солнцестояние': datetime(year, 6, 24),
             'Осеннее равноденствие': datetime(year, 9, 22),
-            'Зимнее солнцестояние': datetime(year, 12, 21),
-            'Сегодня': datetime(year, datetime.now(tz=tz).month, datetime.now(tz=tz).day)
+            'Зимнее солнцестояние': datetime(year, 12, 21)
         }
+        if plot_today:
+            events['Сегодня'] = datetime(year, datetime.now(tz=TZ).month, datetime.now(tz=TZ).day)
 
         for event_name, event_date in events.items():
             # Находим ближайший день в массиве
@@ -175,17 +182,42 @@ def plot_daylight_duration(latitude, year=None, show_solstices=True, tz=None, ci
     ax.text(0.99, 0.98, stats_text, transform=ax.transAxes, fontsize=10,
             horizontalalignment='right', verticalalignment='top', bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
 
-    lines, labels = ax.get_legend_handles_labels()
-    lines2, labels2 = ax2.get_legend_handles_labels()
-    ax.legend(lines + lines2, labels + labels2, loc='upper left', fontsize=10)
+    if plot_derivative:
+        lines, labels = ax.get_legend_handles_labels()
+        lines2, labels2 = ax2.get_legend_handles_labels() # noqa
+        ax.legend(lines + lines2, labels + labels2, loc='upper left', fontsize=10)
+    else:
+        ax.legend(loc='upper left', fontsize=10)
     plt.xlim(datetime(year, 1, 1), datetime(year, 12, 31))
     return fig, ax
 
 
-# Пример использования:
-if __name__ == "__main__":
-    fig, ax = plot_daylight_duration(city_name='Москва\n', latitude=55.66459, tz=timezone(timedelta(hours=3)))
-
+def save_plot(latitude: float):
+    fig, ax = plot_daylight_duration(latitude=latitude, plot_today=False, plot_derivative=True)
     filename = "daylight_duration.png"
     fig.savefig(filename, dpi=300, bbox_inches='tight')
+    plt.cla()
+    plt.clf()
+    plt.close()
     print(f"Plot saved as '{filename}'")
+
+
+def save_video():
+    video_writer = None
+    first_frame_shape_xy = None
+    for lat in np.arange(-90, 90, 0.5):
+        print(lat, end=' ')
+        save_plot(lat)
+        frame = cv2.imread("daylight_duration.png")
+        if first_frame_shape_xy is None:
+            first_frame_shape_xy = (frame.shape[1], frame.shape[0])
+            video_writer = cv2.VideoWriter('output.mp4', cv2.VideoWriter_fourcc(*'mp4v'), 12, first_frame_shape_xy)  # noqa
+
+        frame = cv2.resize(frame, first_frame_shape_xy)
+        video_writer.write(frame)
+    video_writer.release()
+
+
+if __name__ == "__main__":
+    # save_plot(55.55)
+    save_video()
